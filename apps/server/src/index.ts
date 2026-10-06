@@ -5,12 +5,13 @@ import { Bus, systemClock, type AppContext } from './context';
 import { openDatabase } from './db';
 import { attachRealtime } from './realtime';
 import { startScheduler, tick } from './scheduler';
-import { seedIfEmpty } from './seed';
+import { ensureStarterSetup, seedIfEmpty } from './seed';
 
 const config = loadConfig();
 assertSafeConfig(config);
 const database = await openDatabase({ databaseUrl: config.databaseUrl, dataDir: config.dataDir });
 const seeded = await seedIfEmpty(database.db, { demo: config.seedDemo, owner: config.owner });
+if (process.env.LOUNGE_STARTER_SETUP !== 'off' && (await ensureStarterSetup(database.db))) console.log('Loaded the club starting setup: tables, prices and cafeteria products.');
 
 const ctx: AppContext = { db: database.db, clock: systemClock, bus: new Bus(), config };
 const app = await buildApp(ctx);

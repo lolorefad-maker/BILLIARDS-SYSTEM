@@ -1,6 +1,7 @@
 import { defaultBranchSettings } from '@lounge/core';
 import type { DB, Tx } from './db';
-import { branches, organizations, pricingRules, products, stations, users } from './db/schema';
+import { eq } from 'drizzle-orm';
+import { branches, organizations, payments, pricingRules, products, sessions, stations, users } from './db/schema';
 import { hashPin } from './lib/auth';
 import { newId } from './lib/ids';
 
@@ -53,6 +54,55 @@ export async function billiardsLayout(tx: Tx, branchId: string) {
   ]);
 }
 
+/** The cafeteria's starting products (names, prices and stock are editable in Settings). */
+export async function cafeteriaProducts(tx: Tx, branchId: string) {
+  const p = (name: string, category: string, price: number, trackStock = false, stockQty = 0, sortN = 0) => ({
+    id: newId(),
+    branchId,
+    name,
+    category,
+    price,
+    trackStock,
+    stockQty,
+    lowStockAt: trackStock ? 10 : 0,
+    sort: sortN,
+  });
+  await tx.insert(products).values([
+    p('إسبريسو', 'مشروبات ساخنة', 1000, false, 0, 1),
+    p('نسكافيه', 'مشروبات ساخنة', 1250, false, 0, 2),
+    p('شاي', 'مشروبات ساخنة', 750, false, 0, 3),
+    p('بيبسي', 'مشروبات باردة', 750, true, 48, 1),
+    p('ريد بول', 'مشروبات باردة', 2000, true, 24, 2),
+    p('مي', 'مشروبات باردة', 350, true, 60, 3),
+    p('ناتشوز', 'أكل', 2500, false, 0, 1),
+    p('إندومي', 'أكل', 1500, true, 30, 2),
+    p('توست', 'أكل', 2000, false, 0, 3),
+    p('شيبس', 'سناكس', 500, true, 40, 1),
+    p('شوكولاتة', 'سناكس', 750, true, 36, 2),
+  ]);
+}
+
+/**
+ * A real (online) install starts with one owner and nothing else. So that the club does not have to
+ * type everything, an install that is still completely empty — no tables, no products, no sessions and
+ * no money yet — gets the club's starting setup: the tables, their prices and the cafeteria products
+ * (never staff or demo PINs). Everything is editable afterwards; set LOUNGE_STARTER_SETUP=off to skip it.
+ */
+export async function ensureStarterSetup(db: DB): Promise<boolean> {
+  const [branch] = await db.select({ id: branches.id }).from(branches).limit(1);
+  if (!branch) return false;
+  const [anyStation] = await db.select({ id: stations.id }).from(stations).where(eq(stations.branchId, branch.id)).limit(1);
+  const [anyProduct] = await db.select({ id: products.id }).from(products).where(eq(products.branchId, branch.id)).limit(1);
+  const [anySession] = await db.select({ id: sessions.id }).from(sessions).where(eq(sessions.branchId, branch.id)).limit(1);
+  const [anyPayment] = await db.select({ id: payments.id }).from(payments).where(eq(payments.branchId, branch.id)).limit(1);
+  if (anyStation || anyProduct || anySession || anyPayment) return false;
+  await db.transaction(async (tx) => {
+    await billiardsLayout(tx, branch.id);
+    await cafeteriaProducts(tx, branch.id);
+  });
+  return true;
+}
+
 export async function seedIfEmpty(
   db: DB,
   opts: { demo: boolean; owner?: { name: string; pin: string } | null; /** Stations and prices of the demo (the tests use another layout). */ layout?: (tx: Tx, branchId: string) => Promise<void> },
@@ -102,30 +152,7 @@ export async function seedIfEmpty(
 
     await (opts.layout ?? billiardsLayout)(tx, branchId);
 
-    const p = (name: string, category: string, price: number, trackStock = false, stockQty = 0, sortN = 0) => ({
-      id: newId(),
-      branchId,
-      name,
-      category,
-      price,
-      trackStock,
-      stockQty,
-      lowStockAt: trackStock ? 10 : 0,
-      sort: sortN,
-    });
-    await tx.insert(products).values([
-      p('إسبريسو', 'مشروبات ساخنة', 1000, false, 0, 1),
-      p('نسكافيه', 'مشروبات ساخنة', 1250, false, 0, 2),
-      p('شاي', 'مشروبات ساخنة', 750, false, 0, 3),
-      p('بيبسي', 'مشروبات باردة', 750, true, 48, 1),
-      p('ريد بول', 'مشروبات باردة', 2000, true, 24, 2),
-      p('مي', 'مشروبات باردة', 350, true, 60, 3),
-      p('ناتشوز', 'أكل', 2500, false, 0, 1),
-      p('إندومي', 'أكل', 1500, true, 30, 2),
-      p('توست', 'أكل', 2000, false, 0, 3),
-      p('شيبس', 'سناكس', 500, true, 40, 1),
-      p('شوكولاتة', 'سناكس', 750, true, 36, 2),
-    ]);
+    await cafeteriaProducts(tx, branchId);
   });
   return true;
 }
