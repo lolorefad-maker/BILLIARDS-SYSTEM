@@ -1,6 +1,6 @@
 import { controllerState } from '@lounge/core';
 import { clsx } from 'clsx';
-import { AlarmClock, BatteryCharging, CalendarPlus, CircleCheck, Gamepad, Gamepad2, Hourglass, LayoutGrid, Search, Wallet } from 'lucide-react';
+import { AlarmClock, BatteryCharging, CalendarPlus, CircleCheck, CircleDot, Hourglass, LayoutGrid, Search, Wallet } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { TypeIcon } from '../../components/station/status';
@@ -80,7 +80,6 @@ export function FloorPage() {
     const stations = floor.data?.stations ?? [];
     const opts: { value: Filter; label: string; icon?: string }[] = [{ value: 'all', label: t('common.all') }];
     for (const type of [...new Set(stations.map((s) => s.type))]) opts.push({ value: `type:${type}`, label: tk('types', type), icon: type });
-    if (stations.some((s) => s.tier === 'vip')) opts.push({ value: 'tier:vip', label: 'VIP' });
     return opts;
   }, [floor.data, t, tk]);
 
@@ -271,21 +270,6 @@ export function FloorPage() {
               {t('floor.book')}
             </button>
           )}
-          <Link
-            to="/controllers"
-            className="flex h-9 shrink-0 items-center gap-2 rounded-full border border-line bg-surface-1 px-3.5 text-sm font-medium text-muted shadow-[var(--shadow-card)] hover:text-fg"
-          >
-            <Gamepad className="size-4" />
-            <span data-status="free" className="st-fg">
-              <Num>{ctrlCounts.ready}</Num> {t('controllers.ready')}
-            </span>
-            {ctrlCounts.charging > 0 && (
-              <span data-status="ending" className="st-fg flex items-center gap-1">
-                · <BatteryCharging className="size-3.5" />
-                <Num>{ctrlCounts.charging}</Num>
-              </span>
-            )}
-          </Link>
           {can.stock(role) && <StockButton />}
           {can.checkout(role) && <RewardsLink />}
           {can.settings(role) && floor.data && <QuickDiscountButton floor={floor.data} ctx={ctx} now={now} />}
@@ -357,7 +341,7 @@ export function FloorPage() {
 
 const STATUS_CHIPS: { id: StatusFilter; status: string | null; label: TKey; icon: typeof LayoutGrid }[] = [
   { id: 'all', status: null, label: 'floor.kpiAll', icon: LayoutGrid },
-  { id: 'playing', status: 'active', label: 'floor.kpiActive', icon: Gamepad2 },
+  { id: 'playing', status: 'active', label: 'floor.kpiActive', icon: CircleDot },
   { id: 'free', status: 'free', label: 'floor.kpiFree', icon: CircleCheck },
   { id: 'ending', status: 'ending', label: 'floor.kpiEnding', icon: Hourglass },
   { id: 'overtime', status: 'overtime', label: 'floor.kpiOver', icon: AlarmClock },

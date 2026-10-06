@@ -272,26 +272,6 @@ export function SessionSheet({
             )}
           </div>
 
-          {/* Controllers handed to this customer */}
-          {!ended && station.type !== 'vr' && (
-            <div>
-              <div className="mb-2 flex items-center gap-2 text-sm font-medium text-muted">
-                <Gamepad className="size-4" /> {t('controllers.handed')}
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {atStation.map((c) => (
-                  <ControllerChip key={c.id} c={c} now={now} onClick={() => setCtrlId(c.id)} />
-                ))}
-                <button
-                  onClick={() => setAddCtrlOpen(true)}
-                  className="flex h-11 items-center gap-1.5 rounded-control border border-dashed border-line-strong px-3 text-sm text-muted hover:border-accent hover:text-accent"
-                >
-                  <Plus className="size-4" /> {t('controllers.addOne')}
-                </button>
-              </div>
-            </div>
-          )}
-
           {/* Actions */}
           {manage && !ended && (
             <div className="grid grid-cols-2 gap-2">

@@ -6,7 +6,6 @@ import { Toaster } from 'sonner';
 import { AppShell } from './components/shell/AppShell';
 import { ApprovalDialog } from './components/ui/feedback';
 import { CafePage } from './features/cafe/CafePage';
-import { ControllersPage } from './features/controllers/ControllersPage';
 import { DisplayPage } from './features/display/DisplayPage';
 import { FloorPage } from './features/floor/FloorPage';
 import { LoginPage } from './features/auth/LoginPage';
@@ -67,7 +66,6 @@ export function App() {
             >
               <Route index element={<Navigate to="/floor" replace />} />
               <Route path="/floor" element={<FloorPage />} />
-              <Route path="/controllers" element={<ControllersPage />} />
               <Route
                 path="/reservations"
                 element={

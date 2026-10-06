@@ -14,6 +14,7 @@ import type { Q, Tx } from '../db';
 import {
   bills,
   businessDays,
+  cashWithdrawals,
   events,
   orderItems,
   orders,
@@ -31,7 +32,7 @@ import { notFound } from '../lib/errors';
 import { newId } from '../lib/ids';
 import { currentDay, getBranch, loadBillingContext, loadSegments, openShift, toTimeline, type Branch } from './common';
 import { AFTER_DAY_END, carriedSoFar, carriesOnDays, carryOpenSessions } from './carries';
-import { closeOpenShift, closeShiftInput, endShift, rollShiftAtDayEnd, shiftSummary } from './shifts';
+import { closeOpenShift, closeShiftInput, rollShiftAtDayEnd, shiftSummary } from './shifts';
 
 export const closeDayInput = z.object({
   counts: z
@@ -262,17 +263,35 @@ async function shiftsOfDay(q: Q, dayShifts: (typeof shifts.$inferSelect)[]): Pro
   const userIds = [...new Set(dayShifts.map((s) => s.userId))];
   const names = userIds.length ? await q.select({ id: users.id, name: users.name }).from(users).where(inArray(users.id, userIds)) : [];
   const nameOf = new Map(names.map((u) => [u.id, u.name]));
-  return dayShifts.map((s) => ({
-    id: s.id,
-    userName: nameOf.get(s.userId) ?? '',
-    openedAt: s.openedAt.getTime(),
-    closedAt: s.closedAt?.getTime() ?? null,
-    openingFloat: s.openingFloat,
-    expectedCash: s.expectedCash,
-    countedCash: s.countedCash,
-    variance: s.variance,
-    auto: !!s.closedAt && !s.closedBy,
-  }));
+  // What each shift did: money by method, its bills, and what the accountant took out of its drawer.
+  const ids = dayShifts.map((s) => s.id);
+  const [pays, shiftBills, taken] = ids.length
+    ? await Promise.all([
+        q.select({ shiftId: payments.shiftId, method: payments.method, amount: payments.amount }).from(payments).where(inArray(payments.shiftId, ids)),
+        q.select({ shiftId: bills.shiftId, total: bills.total }).from(bills).where(and(inArray(bills.shiftId, ids), eq(bills.status, 'paid'))),
+        q.select({ shiftId: cashWithdrawals.shiftId, amount: cashWithdrawals.amount }).from(cashWithdrawals).where(and(inArray(cashWithdrawals.shiftId, ids), eq(cashWithdrawals.status, 'active'))),
+      ])
+    : [[], [], []];
+  return dayShifts
+    .slice()
+    .sort((a, b) => a.openedAt.getTime() - b.openedAt.getTime())
+    .map((s) => ({
+      id: s.id,
+      userName: nameOf.get(s.userId) ?? '',
+      openedAt: s.openedAt.getTime(),
+      closedAt: s.closedAt?.getTime() ?? null,
+      openingFloat: s.openingFloat,
+      expectedCash: s.expectedCash,
+      countedCash: s.countedCash,
+      variance: s.variance,
+      auto: !!s.closedAt && !s.closedBy,
+      note: s.note ?? null,
+      cash: pays.filter((p) => p.shiftId === s.id && p.method === 'cash').reduce((a, p) => a + p.amount, 0),
+      card: pays.filter((p) => p.shiftId === s.id && p.method === 'card').reduce((a, p) => a + p.amount, 0),
+      bills: shiftBills.filter((b) => b.shiftId === s.id).length,
+      revenue: shiftBills.filter((b) => b.shiftId === s.id).reduce((a, b) => a + b.total, 0),
+      withdrawn: taken.filter((w) => w.shiftId === s.id).reduce((a, w) => a + w.amount, 0),
+    }));
 }
 
 const nextDay = (day: string) => DateTime.fromISO(day).plus({ days: 1 }).toISODate()!;
@@ -345,21 +364,6 @@ async function closeDayTx(tx: Tx, record: Record_, ctx: AppContext, actor: Actor
     });
     return { day, next, report };
   }
-}
-
-/**
- * Closing the shift by hand ends the day with it — even after midnight, so a night that runs from
- * 4 pm to 6 am is one day. In the old midnight mode a shift closes on its own.
- */
-export async function endShiftAndDay(ctx: AppContext, actor: Actor, raw: unknown) {
-  const input = closeShiftInput.parse(raw);
-  const branch = await getBranch(ctx.db, actor.branchId);
-  if (branch.settings.day.autoCloseDay) return endShift(ctx, actor, raw);
-  return mutate(ctx, actor, async (tx, record) => {
-    const shift = await closeOpenShift(tx, record, actor, input, ctx.clock.now());
-    const closed = await closeDayTx(tx, record, ctx, actor, { auto: false, counts: [], shift: null });
-    return { ...shift, day: closed.day, next: closed.next };
-  });
 }
 
 /**

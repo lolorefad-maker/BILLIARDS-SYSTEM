@@ -390,23 +390,6 @@ function PoliciesTab({ data }: { data: SettingsBundle }) {
       </Card>
 
       <Card className="p-5">
-        <h3 className="mb-4 font-semibold">{t('settings.policy.controllers')}</h3>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label={t('settings.policy.chargeMinutes')} hint={t('settings.policy.chargeHint')} htmlFor="ctl-charge">
-            <NumInput id="ctl-charge" min={5} value={s.controllers.chargeMinutes} onChange={(v) => set('controllers', { chargeMinutes: n(v) })} />
-          </Field>
-        </div>
-        <div className="mt-4 border-t border-line pt-4">
-          <Switch
-            checked={s.controllers.returnOnEnd}
-            onChange={(v) => set('controllers', { returnOnEnd: v })}
-            label={t('settings.policy.returnOnEnd')}
-            hint={t('settings.policy.returnOnEndHint')}
-          />
-        </div>
-      </Card>
-
-      <Card className="p-5">
         <h3 className="mb-4 font-semibold">{t('settings.policy.day')}</h3>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={t('settings.policy.cutoff')} hint={t('settings.policy.cutoffHint')} htmlFor="d-cut">

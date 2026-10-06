@@ -1,7 +1,8 @@
 import { parseMoney } from '@lounge/core';
 import { clsx } from 'clsx';
-import { Banknote, CreditCard, Wallet } from 'lucide-react';
-import { useId, useState } from 'react';
+import { Banknote, CreditCard, Lock, Wallet } from 'lucide-react';
+import { useEffect, useId, useState } from 'react';
+import { useNavigate } from 'react-router';
 import { useT } from '../../i18n';
 import { post } from '../../lib/api';
 import { can, useAuth } from '../../lib/auth';
@@ -47,7 +48,10 @@ function ShiftDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: 
   const { t } = useT();
   const f = useFmt();
   const floor = useFloor();
+  const navigate = useNavigate();
+  const role = useAuth((s) => s.user?.role);
   const shift = floor.data?.shift ?? null;
+  const handover = floor.data?.handover ?? null;
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
   const { busy, run } = useAction();
@@ -58,6 +62,12 @@ function ShiftDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: 
   const minor = parseMoney(amount || '0', f.decimals);
   // Devices still playing when the shift is closed are paid on the next day, whole.
   const running = (floor.data?.sessions ?? []).filter((s) => s.status === 'running').length;
+
+  // The new shift takes over the cash the last one counted (the drawer is the same drawer); it can be changed.
+  useEffect(() => {
+    if (open && !shift && handover && amount === '') setAmount(String(f.toMajor(handover.cash)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, shift, handover?.cash]);
 
   const submitOpen = async () => {
     if (minor == null) return;
@@ -97,9 +107,26 @@ function ShiftDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: 
       description={shift ? t('shift.openedBy', { name: shift.userName, time: f.time(new Date(shift.openedAt).getTime()) }) : t('shift.noneHint')}
       size="sm"
       footer={
-        <Button variant="primary" size="lg" block loading={busy} disabled={minor == null || amount === ''} onClick={shift ? submitClose : submitOpen}>
-          {shift ? t('shift.close') : t('shift.open')}
-        </Button>
+        <div className="flex w-full flex-col gap-2">
+          <Button variant="primary" size="lg" block loading={busy} disabled={minor == null || amount === ''} onClick={shift ? submitClose : submitOpen}>
+            {shift ? t('shift.close') : t('shift.open')}
+          </Button>
+          {/* Only the owner / manager ends the day: that is what resets the ledger and starts a new day. */}
+          {can.isManager(role) && (
+            <Button
+              variant="secondary"
+              size="lg"
+              block
+              icon={<Lock className="size-4" />}
+              onClick={() => {
+                onOpenChange(false);
+                navigate('/reports?end=1');
+              }}
+            >
+              {t('shift.endDay')}
+            </Button>
+          )}
+        </div>
       }
     >
       <div className="flex flex-col gap-4">
@@ -108,7 +135,7 @@ function ShiftDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: 
         ))}
         {shift && (
           <div data-status="ending" className="tint rounded-card border p-3 text-sm">
-            <div className="font-semibold">{t('shift.endsDay')}</div>
+            <div className="font-semibold">{t('shift.handsOver')}</div>
             {running > 0 && <div className="mt-1 text-xs text-muted">{t('shift.runningWarn', { n: running })}</div>}
           </div>
         )}
@@ -170,6 +197,12 @@ function ShiftDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: 
               </Button>
             </div>
             <Input value={takeNote} onChange={(e) => setTakeNote(e.target.value)} placeholder={t('shift.takeNote')} aria-label={t('shift.takeNote')} maxLength={200} />
+          </div>
+        )}
+        {!shift && handover && (
+          <div className="rounded-card bg-surface-2 p-3 text-sm">
+            <div className="text-xs text-muted">{t('shift.takeOverFrom', { name: handover.userName })}</div>
+            <Money value={handover.cash} currency className="mt-0.5 text-lg font-semibold" />
           </div>
         )}
         <Field label={shift ? t('shift.counted') : t('shift.float')} htmlFor="shift-amount">

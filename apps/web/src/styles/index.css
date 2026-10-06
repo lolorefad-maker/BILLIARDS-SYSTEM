@@ -7,7 +7,7 @@
 /* ------------------------------------------------------------------ tokens
  * Roles, not colors. Components only use these (see .claude/skills/lounge-ui-ux).
  */
-/* Habeedko: red and white by default (a black theme is one tap away in the user menu).
+/* Billiards club: red and white by default (a black theme is one tap away in the user menu).
  * Status colors stay distinct: a running device is graphite/silver (never red), so red on the
  * floor means only "act here" or "time is up". */
 :root,

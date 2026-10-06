@@ -1,7 +1,7 @@
 {
-  "name": "Habeedko",
-  "short_name": "Habeedko",
-  "description": "إدارة صالة Habeedko: الأجهزة، الكافيتيريا، الحجوزات، المخزون والجرد",
+  "name": "Billiards",
+  "short_name": "Billiards",
+  "description": "إدارة نادي البلياردو: الطاولات، الكافيتيريا، الحجوزات، المخزون والجرد",
   "lang": "ar",
   "dir": "rtl",
   "start_url": "/",

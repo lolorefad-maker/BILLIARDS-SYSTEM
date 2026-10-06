@@ -5,7 +5,7 @@ import { customers, orderItems, orders, payments, reservations, sessions } from 
 import { carriedSoFar } from './carries';
 import { currentDay, getBranch, loadSegments } from './common';
 import { listControllers } from './controllers';
-import { currentShift, uncountedShifts } from './shifts';
+import { currentShift, lastClosedShift, uncountedShifts } from './shifts';
 import { listArchivedStations, listPackages, listRules, listStations } from './settings';
 
 /**
@@ -15,7 +15,7 @@ import { listArchivedStations, listPackages, listRules, listStations } from './s
  */
 export async function floorSnapshot(q: Q, branchId: string, now: number) {
   const branch = await getBranch(q, branchId);
-  const [day, stationRows, archivedStations, rules, pkgs, shift, uncounted, controllerRows] = await Promise.all([
+  const [day, stationRows, archivedStations, rules, pkgs, shift, uncounted, controllerRows, handover] = await Promise.all([
     currentDay(q, branch, now),
     listStations(q, branchId),
     listArchivedStations(q, branchId),
@@ -24,6 +24,7 @@ export async function floorSnapshot(q: Q, branchId: string, now: number) {
     currentShift(q, branchId),
     uncountedShifts(q, branchId),
     listControllers(q, branchId),
+    lastClosedShift(q, branchId),
   ]);
 
   const live = await q
@@ -85,6 +86,8 @@ export async function floorSnapshot(q: Q, branchId: string, now: number) {
       settings: branch.settings,
     },
     shift,
+    /** The shift that closed last: the next one takes over its counted cash. */
+    handover,
     /** Drawers the day's end closed by itself and nobody counted yet. */
     uncountedShifts: uncounted,
     stations: stationRows,

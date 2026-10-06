@@ -50,6 +50,25 @@ export async function shiftSummary(q: Q, shiftId: string) {
   };
 }
 
+/**
+ * The shift that closed last, with the cash it counted: the next shift takes over this amount (the
+ * drawer is the same drawer), so the cashier does not retype it.
+ */
+export async function lastClosedShift(q: Q, branchId: string) {
+  const [s] = await q
+    .select({ id: shifts.id, userId: shifts.userId, closedAt: shifts.closedAt, countedCash: shifts.countedCash, expectedCash: shifts.expectedCash, businessDay: shifts.businessDay })
+    .from(shifts)
+    .where(and(eq(shifts.branchId, branchId), eq(shifts.status, 'closed')))
+    .orderBy(desc(shifts.closedAt))
+    .limit(1);
+  if (!s) return null;
+  const hidden = await archivedDays(q, branchId);
+  if (hidden.has(s.businessDay)) return null;
+  const [u] = await q.select({ name: users.name }).from(users).where(eq(users.id, s.userId));
+  const cash = s.countedCash ?? s.expectedCash;
+  return cash == null ? null : { userName: u?.name ?? '', cash, closedAt: s.closedAt?.getTime() ?? null };
+}
+
 /** Shifts the day's end closed by itself whose drawer nobody has counted yet (newest first). */
 export async function uncountedShifts(q: Q, branchId: string) {
   const rows = await q

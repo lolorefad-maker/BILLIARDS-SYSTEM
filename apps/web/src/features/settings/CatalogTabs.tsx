@@ -55,7 +55,7 @@ function Header({ title, onAdd, addLabel }: { title?: string; onAdd: () => void;
 // ------------------------------------------------------------------ stations
 
 type StationForm = Omit<Station, 'id' | 'branchId'>;
-const emptyStation: StationForm = { name: '', type: 'ps5', tier: 'regular', zone: '', modes: ['single', 'multi'], sort: 0, maintenance: false, maintenanceNote: '', active: true };
+const emptyStation: StationForm = { name: '', type: 'pool', tier: 'regular', zone: '', modes: ['standard'], sort: 0, maintenance: false, maintenanceNote: '', active: true };
 
 export function StationsTab({ data }: { data: SettingsBundle }) {
   const { t, tk } = useT();
@@ -195,26 +195,18 @@ export function StationsTab({ data }: { data: SettingsBundle }) {
                 value={editing.form.type}
                 onChange={(e) => {
                   const type = e.target.value;
-                  setEditing({ ...editing, form: { ...editing.form, type, modes: type === 'vr' ? ['standard'] : ['single', 'multi'] } });
+                  setEditing({ ...editing, form: { ...editing.form, type, modes: ['standard'] } });
                 }}
               >
-                <option value="ps5">PS5</option>
-                <option value="vr">VR</option>
-                <option value="pc">PC</option>
-              </Select>
-            </Field>
-            <Field label={t('settings.station.tier')} htmlFor="s-tier">
-              <Select id="s-tier" value={editing.form.tier} onChange={(e) => setEditing({ ...editing, form: { ...editing.form, tier: e.target.value } })}>
-                <option value="regular">{tk('tiers', 'regular')}</option>
-                <option value="vip">VIP</option>
-                <option value="big">{tk('tiers', 'big')}</option>
+                <option value="snooker">{tk('types', 'snooker')}</option>
+                <option value="pool">{tk('types', 'pool')}</option>
               </Select>
             </Field>
             <Field label={t('settings.station.modes')} className="sm:col-span-2">
               <ChipGroup
                 value={editing.form.modes}
                 onChange={(modes) => setEditing({ ...editing, form: { ...editing.form, modes } })}
-                options={['single', 'multi', 'standard'].map((m) => ({ value: m, label: tk('modes', m) }))}
+                options={['standard'].map((m) => ({ value: m, label: tk('modes', m) }))}
               />
             </Field>
             <div className="flex flex-col gap-2 sm:col-span-2">

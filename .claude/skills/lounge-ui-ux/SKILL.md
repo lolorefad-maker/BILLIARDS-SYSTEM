@@ -1,11 +1,11 @@
 ---
 name: lounge-ui-ux
-description: UI/UX design system and rules for Lounge OS (PlayStation / VR / cafeteria lounge management). Load before building or changing ANY screen, component, style, copy, or interaction in apps/web — covers personas, design tokens, status colors, RTL/Arabic rules, component patterns, motion, accessibility, and the pre-ship review checklist.
+description: UI/UX design system and rules for Lounge OS (billiards club / cafeteria management). Load before building or changing ANY screen, component, style, copy, or interaction in apps/web — covers personas, design tokens, status colors, RTL/Arabic rules, component patterns, motion, accessibility, and the pre-ship review checklist.
 ---
 
 # Lounge OS — UI/UX System
 
-The product runs a gaming lounge in real time: stations (PS5 / VR, Regular / VIP),
+The product runs a billiards club in real time: tables (snooker / regular billiards),
 live timers, numbered controllers, reservations, shifts and end-of-day. **Everything happens on
 the device**: opening a station takes time, controllers handed over, drinks/food and any
 up-front payment (cash / visa) in one sheet; drinks are added later from the same sheet. There is

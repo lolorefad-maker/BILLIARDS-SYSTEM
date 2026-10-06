@@ -3,11 +3,12 @@ import type { Config } from '../src/config';
 import { Bus, type AppContext, type DomainEvent } from '../src/context';
 import { openDatabase } from '../src/db';
 import { DEMO_STAFF, seedIfEmpty } from '../src/seed';
+import { loungeLayout } from './lounge-fixture';
 
 export type Json = any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
 /** A fresh in-memory lounge with demo data, a controllable clock and logged-in staff. */
-export async function createHarness(startIso: string, overrides: Partial<Config> = {}) {
+export async function createHarness(startIso: string, overrides: Partial<Config> = {}, layout: typeof loungeLayout = loungeLayout) {
   let t = Date.parse(startIso);
   const config: Config = {
     port: 0,
@@ -25,7 +26,7 @@ export async function createHarness(startIso: string, overrides: Partial<Config>
     ...overrides,
   };
   const database = await openDatabase({ databaseUrl: null, dataDir: null });
-  await seedIfEmpty(database.db, { demo: config.seedDemo, owner: config.owner });
+  await seedIfEmpty(database.db, { demo: config.seedDemo, owner: config.owner, layout });
   const published: DomainEvent[] = [];
   const ctx: AppContext = { db: database.db, clock: { now: () => t }, bus: new Bus(), config };
   ctx.bus.onEvent((e) => published.push(e));

@@ -1,11 +1,11 @@
 import { clsx } from 'clsx';
-import { AlarmClock, CalendarClock, CircleCheck, Crown, Gamepad2, Glasses, Hourglass, Monitor, Pause, Wrench, type LucideIcon } from 'lucide-react';
+import { AlarmClock, CalendarClock, CircleCheck, Crown, CircleDot, Hourglass, Pause, Target, Wrench, type LucideIcon } from 'lucide-react';
 import { useT } from '../../i18n';
 import type { UiStatus } from '../../lib/live';
 
 export const STATUS_ICON: Record<UiStatus, LucideIcon> = {
   free: CircleCheck,
-  active: Gamepad2,
+  active: CircleDot,
   ending: Hourglass,
   overtime: AlarmClock,
   paused: Pause,
@@ -14,7 +14,7 @@ export const STATUS_ICON: Record<UiStatus, LucideIcon> = {
 };
 
 export function TypeIcon({ type, className }: { type: string; className?: string }) {
-  const Icon = type === 'vr' ? Glasses : type === 'pc' ? Monitor : Gamepad2;
+  const Icon = type === 'snooker' ? Target : CircleDot;
   return <Icon className={className} aria-hidden />;
 }
 

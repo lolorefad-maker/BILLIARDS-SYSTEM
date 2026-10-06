@@ -53,6 +53,13 @@ export interface DayReport {
     variance: Minor | null;
     /** Closed by the system at the day's end (drawer not counted; the cash carried to the next shift). */
     auto?: boolean;
+    note?: string | null;
+    /** What this shift took in, by method (refunds netted), the bills it made and their total, and the cash the accountant took out. */
+    cash?: Minor;
+    card?: Minor;
+    bills?: number;
+    revenue?: Minor;
+    withdrawn?: Minor;
   }[];
   stock: { productId: string; name: string; expected: number; counted: number; variance: number }[];
 }

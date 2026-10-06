@@ -5,6 +5,7 @@ import { Bus, type AppContext, type DomainEvent } from '../src/context';
 import { openDatabase, type Database } from '../src/db';
 import { tick } from '../src/scheduler';
 import { DEMO_STAFF, seedIfEmpty } from '../src/seed';
+import { loungeLayout } from './lounge-fixture';
 
 // Friday 2026-09-25 18:00 in Amman (UTC+3). Happy hour (Sun–Thu) does not apply.
 let t = Date.parse('2026-09-25T15:00:00Z');
@@ -52,7 +53,7 @@ const pinOf = (role: string) => DEMO_STAFF.find((s) => s.role === role)!.pin;
 
 beforeAll(async () => {
   database = await openDatabase({ databaseUrl: null, dataDir: null });
-  await seedIfEmpty(database.db, { demo: true });
+  await seedIfEmpty(database.db, { demo: true, layout: loungeLayout });
   ctx = { db: database.db, clock: { now: () => t }, bus: new Bus(), config };
   ctx.bus.onEvent((e) => published.push(e));
   app = await buildApp(ctx);

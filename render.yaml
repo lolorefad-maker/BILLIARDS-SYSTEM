@@ -2,7 +2,7 @@
 # In Render: New → Blueprint → pick this repo. You will be asked for the values marked `sync: false`.
 services:
   - type: web
-    name: lounge-os
+    name: billiards-os
     runtime: node
     region: frankfurt # closest Render region to the Levant
     # TEMPORARY free plan for trying it out. The free plan sleeps after ~15 min idle, which stops
@@ -22,7 +22,7 @@ services:
         value: cloud
       - key: DATABASE_URL
         fromDatabase:
-          name: lounge-db
+          name: billiards-db
           property: connectionString
       - key: JWT_SECRET
         generateValue: true
@@ -36,9 +36,9 @@ services:
         sync: false
 
 databases:
-  - name: lounge-db
-    databaseName: lounge
-    user: lounge
+  - name: billiards-db
+    databaseName: billiards
+    user: billiards
     region: frankfurt
     # TEMPORARY free plan: free databases expire after about a month and have no backups.
     # Upgrade to `basic-256mb` (keeps the data) before real use.

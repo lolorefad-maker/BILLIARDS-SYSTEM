@@ -316,12 +316,6 @@ export function StartSheet({
           </div>
         )}
 
-        {station.type !== 'vr' && (
-          <Field label={<span className="flex items-center gap-2"><Gamepad className="size-4" /> {t('controllers.handed')}</span>}>
-            <ControllerPicker floor={floor} stationId={station.id} value={controllerIds} onChange={setControllerIds} />
-          </Field>
-        )}
-
         {/* The rest is optional: one short row each, opened only when needed. */}
         <div className="flex flex-col gap-2">
           <OptionRow

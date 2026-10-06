@@ -125,6 +125,8 @@ export interface Floor {
   shift: Shift | null;
   stations: Station[];
   /** Drawers the day's end closed by itself (midnight) that nobody counted yet. */
+  /** The shift that closed last: the next one takes over its counted cash. */
+  handover?: { userName: string; cash: number; closedAt: number | null } | null;
   uncountedShifts?: { id: string; userName: string; businessDay: string; closedAt: number | null; expectedCash: number }[];
   /** Deleted stations (id + name only), so old bookings still name their station. */
   archivedStations?: { id: string; name: string }[];

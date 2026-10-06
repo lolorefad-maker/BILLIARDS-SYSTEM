@@ -50,7 +50,6 @@ interface NavItem {
 const NAV: NavItem[] = [
   { to: '/floor', label: 'nav.floor', icon: LayoutGrid, mobile: true },
   { to: '/cafe', label: 'nav.cafe', icon: Coffee, allow: can.checkout, mobile: true },
-  { to: '/controllers', label: 'nav.controllers', icon: Gamepad, mobile: true },
   { to: '/reservations', label: 'nav.reservations', icon: CalendarDays, allow: can.reservations, mobile: true },
   { to: '/stock', label: 'nav.stock', icon: Boxes, allow: can.stock, mobile: true },
   { to: '/customers', label: 'nav.customers', short: 'nav.customersShort', icon: Contact, allow: can.checkout, mobile: true },
@@ -62,7 +61,6 @@ const NAV: NavItem[] = [
 export function AppShell() {
   useRealtime();
   useClockTicker();
-  useControllerToasts();
   useTimeAlerts();
   useStockWarnings();
   useEffect(() => installAudioUnlock(), []);

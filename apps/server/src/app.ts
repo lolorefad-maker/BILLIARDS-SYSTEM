@@ -24,7 +24,7 @@ import {
 import { HttpError, notFound, unauthorized } from './lib/errors';
 import { checkoutSession, counterSale, getBill, voidBill } from './services/checkout';
 import { getBranch, getSession } from './services/common';
-import { closeDay, dayReport, endShiftAndDay, listDays, resetLedger } from './services/days';
+import { closeDay, dayReport, listDays, resetLedger } from './services/days';
 import { floorSnapshot } from './services/floor';
 import { monthReport, rangeReport, sessionsLog } from './services/ledger';
 import { exportSetup, importSetup } from './services/setup';
@@ -61,7 +61,7 @@ import {
   updateBranch,
 } from './services/settings';
 import { createWithdrawal, listWithdrawals, voidWithdrawal } from './services/withdrawals';
-import { countClosedShift, currentShift, startShift } from './services/shifts';
+import { countClosedShift, currentShift, endShift, startShift } from './services/shifts';
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -290,7 +290,7 @@ export async function buildApp(ctx: AppContext) {
       return listWithdrawals(ctx.db, actor.branchId, day);
     }),
   );
-  app.post('/api/shifts/close', route('shift.manage', async (req, actor) => endShiftAndDay(ctx, actor, req.body)));
+  app.post('/api/shifts/close', route('shift.manage', async (req, actor) => endShift(ctx, actor, req.body)));
   // Count, afterwards, a shift that closed by itself at the day's end.
   app.post('/api/shifts/:id/count', route('shift.manage', async (req, actor) => countClosedShift(ctx, actor, id(req), req.body)));
 

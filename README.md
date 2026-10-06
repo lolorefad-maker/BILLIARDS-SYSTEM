@@ -1,6 +1,6 @@
-# Habeedko — Lounge OS
+# Billiards — club management system
 
-The Habeedko shop's management system (red and black theme): a management system for PlayStation / VR gaming lounges with a cafeteria. It runs **locally in the shop**, so it keeps working with no internet, and it is built to sync to a **cloud** later for remote owners and multiple branches.
+Management system for a billiards club: two snooker tables, five regular billiard tables and a cafeteria. It runs **locally in the club**, so it keeps working with no internet, and it can be deployed online (Render) for remote owners.
 
 - **Everything happens on the device.** Opening a station records all of this in one sheet: play time (open/fixed/package), the numbered controllers handed over, drinks and food, and any up-front payment (cash or visa). During play, the same sheet adds drinks and takes payments. It always shows: play time × hourly rate + drinks − paid (cash / visa) = what is left. There is no kitchen screen.
 - **Cafeteria (كافيتيريا):** the cashier sells drinks and snacks to someone not on a device, paid on the spot in cash or visa. The stock goes down and the sale shows in the ledger as "Cafeteria".

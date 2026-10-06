@@ -12,7 +12,7 @@ import {
   Printer,
   Receipt,
   RotateCcw,
-  Wallet,
+  UserRound,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Navigate, useSearchParams } from 'react-router';
@@ -186,6 +186,7 @@ function DailyTab({
       ) : (
         <>
           <DaySummary r={r} />
+          <ShiftsLog r={r} />
           <DailyLog day={r.day} isOpenDay={r.status === 'open'} />
           <CafeLog day={r.day} />
           <ReportView r={r} />
@@ -218,11 +219,8 @@ function DaySummary({ r }: { r: DayReport }) {
   const log = useSessionsLog(r.day);
   const floor = useFloor();
   const devices = (log.data ?? []).filter((x) => !x.counter && !x.carried).length + (r.status === 'open' ? r.openSessions.count : 0);
-  const live = r.status === 'open' ? floor.data?.shift : null;
-  const taken = useWithdrawals(r.day).data ?? [];
-  const takenTotal = taken.reduce((a, w) => a + w.amount, 0);
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1.2fr] lg:gap-4">
+    <div className="grid gap-3 sm:grid-cols-2 lg:gap-4">
       <Card className="relative overflow-hidden p-5">
         <span aria-hidden className="absolute inset-y-0 start-0 w-1 bg-accent" />
         <div className="text-sm text-muted">{t('ledger.dayProfit')}</div>
@@ -245,41 +243,6 @@ function DaySummary({ r }: { r: DayReport }) {
         <Money value={r.payments.net} currency className="text-3xl font-semibold" />
         <Row className="!py-0" label={<span className="flex items-center gap-2"><Banknote className="size-4" />{t('checkout.cash')}</span>} value={<Money value={r.payments.byMethod.cash ?? 0} className="font-semibold text-fg" />} />
         <Row className="!py-0" label={<span className="flex items-center gap-2"><CreditCard className="size-4" />{t('checkout.card')}</span>} value={<Money value={r.payments.byMethod.card ?? 0} className="font-semibold text-fg" />} />
-      </Card>
-      <Card className="flex flex-col justify-center gap-2 p-5">
-        <div className="flex items-center gap-2 text-sm text-muted">
-          <Wallet className="size-4" />
-          {t('shift.title')}
-        </div>
-        {r.shifts.length === 0 ? (
-          <p className="text-sm text-faint">{t('ledger.noShift')}</p>
-        ) : (
-          r.shifts.map((s) => (
-            <div key={s.id} className="flex flex-col gap-1 border-b border-line pb-2 text-sm last:border-0 last:pb-0">
-              <Row className="!py-0" label={t('ledger.shiftOpenedAt')} value={<span className="font-semibold tabular-nums">{f.dateTime(s.openedAt)}</span>} />
-              <Row className="!py-0" label={t('ledger.shiftFloat')} value={<Money value={s.openingFloat} className="font-semibold text-fg" />} />
-              {s.closedAt ? (
-                <Row className="!py-0" label={t('ledger.shiftClosedAt')} value={<span className="tabular-nums">{f.dateTime(s.closedAt)}</span>} />
-              ) : (
-                <Row className="!py-0" label={t('shift.expected')} value={<Money value={live?.expectedCash ?? 0} className="font-semibold text-fg" />} />
-              )}
-            </div>
-          ))
-        )}
-        {taken.length > 0 && (
-          <div data-status="ending" className="tint mt-1 flex flex-col gap-1 rounded-control border p-2.5 text-sm">
-            <Row className="!py-0" label={<span className="font-semibold">{t('ledger.accountantTook')}</span>} value={<Money value={takenTotal} className="font-semibold" />} />
-            {taken.map((w) => (
-              <div key={w.id} className="flex items-center justify-between gap-2 text-xs text-muted">
-                <span className="truncate">
-                  <span className="tabular-nums">{f.time(w.createdAt)}</span>
-                  {w.note && <span> · {w.note}</span>}
-                </span>
-                <Money value={w.amount} />
-              </div>
-            ))}
-          </div>
-        )}
       </Card>
     </div>
   );
@@ -495,5 +458,91 @@ function ResetLedger() {
         </div>
       </Modal>
     </div>
+  );
+}
+
+/**
+ * Every shift of the day in order: who took it over and when, what the drawer held then, what the shift
+ * took in (cash / visa), the cash the accountant took out, and how it was handed over (counted, difference).
+ */
+function ShiftsLog({ r }: { r: DayReport }) {
+  const { t } = useT();
+  const f = useFmt();
+  const taken = useWithdrawals(r.day).data ?? [];
+  const live = useFloor().data?.shift;
+  return (
+    <Card className="p-5">
+      <SectionTitle>{t('ledger.shiftsTitle')}</SectionTitle>
+      {r.shifts.length === 0 ? (
+        <p className="text-sm text-faint">{t('ledger.noShift')}</p>
+      ) : (
+        <ol className="flex flex-col gap-3">
+          {r.shifts.map((s, i) => {
+            const prev = i > 0 ? r.shifts[i - 1] : null;
+            const open = s.closedAt == null;
+            const handed = prev ? (prev.countedCash ?? prev.expectedCash) : null;
+            return (
+              <li key={s.id} className="rounded-card border border-line p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 font-semibold">
+                    <UserRound className="size-4 text-muted" aria-hidden />
+                    {s.userName}
+                    <span className="text-xs font-normal text-faint">#{i + 1}</span>
+                  </div>
+                  <span data-status={open ? 'free' : 'off'} className="st-soft inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium">
+                    {open ? t('reports.open') : t('ledger.shiftClosed')}
+                  </span>
+                </div>
+                <div className="mt-3 grid gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
+                  <Row className="!py-0.5" label={t('ledger.tookOver')} value={<span className="tabular-nums font-medium">{f.dateTime(s.openedAt)}</span>} />
+                  <Row className="!py-0.5" label={t('ledger.shiftFloat')} value={<Money value={s.openingFloat} className="font-semibold text-fg" />} />
+                  {prev && handed != null && (
+                    <Row className="!py-0.5" muted label={t('ledger.handedFrom', { name: prev.userName })} value={<Money value={handed} />} />
+                  )}
+                  {prev && handed != null && handed !== s.openingFloat && (
+                    <Row className="!py-0.5" label={<span className="text-st-ending">{t('ledger.floatDiffers')}</span>} value={<Money value={s.openingFloat - handed} className="text-st-ending" />} />
+                  )}
+                  <Row className="!py-0.5" label={<span className="flex items-center gap-2"><Banknote className="size-4" />{t('checkout.cash')}</span>} value={<Money value={s.cash ?? 0} className="font-semibold text-fg" />} />
+                  <Row className="!py-0.5" label={<span className="flex items-center gap-2"><CreditCard className="size-4" />{t('checkout.card')}</span>} value={<Money value={s.card ?? 0} className="font-semibold text-fg" />} />
+                  <Row className="!py-0.5" label={t('ledger.shiftIncome')} value={<span><Money value={s.revenue ?? 0} className="font-semibold text-fg" /> · <Num className="text-xs text-muted">{s.bills ?? 0}</Num> {t('reports.bills')}</span>} />
+                  {(s.withdrawn ?? 0) > 0 && (
+                    <Row className="!py-0.5" label={<span className="text-st-ending">{t('ledger.accountantTook')}</span>} value={<Money value={s.withdrawn ?? 0} className="font-semibold text-st-ending" />} />
+                  )}
+                  {open ? (
+                    <Row className="!py-0.5" label={t('shift.expected')} value={<Money value={live?.expectedCash ?? 0} className="font-semibold text-fg" />} />
+                  ) : (
+                    <>
+                      <Row className="!py-0.5" label={t('ledger.handedOver')} value={<span className="tabular-nums font-medium">{f.dateTime(s.closedAt!)}</span>} />
+                      {s.countedCash != null && <Row className="!py-0.5" label={t('shift.counted')} value={<Money value={s.countedCash} className="font-semibold text-fg" />} />}
+                    </>
+                  )}
+                </div>
+                {s.variance != null && (
+                  <div data-status={s.variance === 0 ? 'free' : s.variance < 0 ? 'overtime' : 'ending'} className="st-soft mt-3 flex items-center justify-between rounded-control px-3 py-2 text-sm font-semibold">
+                    <span>{s.variance === 0 ? t('shift.balanced') : s.variance < 0 ? t('shift.short') : t('shift.over')}</span>
+                    {s.variance !== 0 && <Money value={Math.abs(s.variance)} currency />}
+                  </div>
+                )}
+                {s.note && <p className="mt-2 text-xs text-muted">{s.note}</p>}
+              </li>
+            );
+          })}
+        </ol>
+      )}
+      {taken.length > 0 && (
+        <div data-status="ending" className="tint mt-3 flex flex-col gap-1 rounded-control border p-3 text-sm">
+          <div className="font-semibold">{t('ledger.accountantTook')}</div>
+          {taken.map((w) => (
+            <div key={w.id} className="flex items-center justify-between gap-2 text-xs text-muted">
+              <span className="truncate">
+                <span className="tabular-nums">{f.time(w.createdAt)}</span>
+                {w.note && <span> · {w.note}</span>}
+              </span>
+              <Money value={w.amount} />
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
   );
 }
