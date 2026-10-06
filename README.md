@@ -144,3 +144,7 @@ npm test
   - ESC/POS receipt printing.
   - PWA offline shell.
 - **Phase 4:** multi-branch/SaaS tenancy, online booking and payment, customer app, tournaments.
+
+## Loading the starting setup on a new online install
+
+A new online install starts empty (only the owner). `setup/billiards-setup.json` holds the club's starting setup — the 2 snooker tables (SN-1, SN-2), the 5 regular tables (PL-1…PL-5), their hourly prices, the cafeteria products and the policies. Sign in as the owner, open **Settings → Transfer** (نقل الإعدادات), choose this file and import it. Staff are added from Settings → Staff (the demo PINs are never put online). Edit the prices and products afterwards from Settings.

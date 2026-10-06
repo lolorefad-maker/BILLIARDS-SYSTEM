@@ -1,0 +1,315 @@
+{
+  "format": "lounge-setup",
+  "version": 1,
+  "exportedAt": 1791305591387,
+  "branch": {
+    "name": "Billiards",
+    "timezone": "Asia/Amman",
+    "currency": "JOD",
+    "currencyDecimals": 3,
+    "locale": "ar",
+    "settings": {
+      "billing": {
+        "graceMinutes": 3,
+        "minimumMinutes": 0,
+        "roundingMinutes": 5,
+        "roundingMode": "up",
+        "earlyEnd": "charge_actual",
+        "earlyEndMinMinutes": 30,
+        "sessionCap": null,
+        "autoBestPackage": true,
+        "endingSoonMinutes": 5,
+        "autoEndFixed": false
+      },
+      "reservations": {
+        "freeCancelMinutes": 120,
+        "lateCancelFeeKind": "percent_deposit",
+        "lateCancelFeeValue": 50,
+        "noShowGraceMinutes": 15,
+        "noShowForfeitDeposit": true,
+        "holdMinutesBefore": 15
+      },
+      "checkout": {
+        "cashRounding": 50,
+        "maxCashierDiscountPercent": 100,
+        "refundApprovalAbove": 2000,
+        "voidNeedsApproval": true
+      },
+      "day": {
+        "cutoff": "06:00",
+        "autoCloseDay": false
+      },
+      "controllers": {
+        "chargeMinutes": 60,
+        "returnOnEnd": true
+      },
+      "rewards": {
+        "enabled": true,
+        "afterMinutes": 240,
+        "freeMinutes": 60,
+        "countryCode": "962",
+        "message": "أهلاً {name} 👋\nشكراً لزيارتك {shop}! لعبت {played} وكسبت {free} مجاناً 🎁\nبتستخدمها بزيارتك الجاية، بس عطينا هالرقم لما تيجي."
+      }
+    }
+  },
+  "stations": [
+    {
+      "name": "SN-1",
+      "type": "snooker",
+      "tier": "regular",
+      "zone": "سنوكر",
+      "modes": [
+        "standard"
+      ],
+      "sort": 0,
+      "maintenance": false,
+      "maintenanceNote": null,
+      "active": true
+    },
+    {
+      "name": "SN-2",
+      "type": "snooker",
+      "tier": "regular",
+      "zone": "سنوكر",
+      "modes": [
+        "standard"
+      ],
+      "sort": 1,
+      "maintenance": false,
+      "maintenanceNote": null,
+      "active": true
+    },
+    {
+      "name": "PL-1",
+      "type": "pool",
+      "tier": "regular",
+      "zone": "بلياردو",
+      "modes": [
+        "standard"
+      ],
+      "sort": 2,
+      "maintenance": false,
+      "maintenanceNote": null,
+      "active": true
+    },
+    {
+      "name": "PL-2",
+      "type": "pool",
+      "tier": "regular",
+      "zone": "بلياردو",
+      "modes": [
+        "standard"
+      ],
+      "sort": 3,
+      "maintenance": false,
+      "maintenanceNote": null,
+      "active": true
+    },
+    {
+      "name": "PL-3",
+      "type": "pool",
+      "tier": "regular",
+      "zone": "بلياردو",
+      "modes": [
+        "standard"
+      ],
+      "sort": 4,
+      "maintenance": false,
+      "maintenanceNote": null,
+      "active": true
+    },
+    {
+      "name": "PL-4",
+      "type": "pool",
+      "tier": "regular",
+      "zone": "بلياردو",
+      "modes": [
+        "standard"
+      ],
+      "sort": 5,
+      "maintenance": false,
+      "maintenanceNote": null,
+      "active": true
+    },
+    {
+      "name": "PL-5",
+      "type": "pool",
+      "tier": "regular",
+      "zone": "بلياردو",
+      "modes": [
+        "standard"
+      ],
+      "sort": 6,
+      "maintenance": false,
+      "maintenanceNote": null,
+      "active": true
+    }
+  ],
+  "rules": [
+    {
+      "name": "سنوكر",
+      "priority": 0,
+      "active": true,
+      "effect": {
+        "kind": "rate",
+        "perHour": 5000
+      },
+      "match": {
+        "stationTypes": [
+          "snooker"
+        ]
+      },
+      "stationNames": null
+    },
+    {
+      "name": "بلياردو عادي",
+      "priority": 0,
+      "active": true,
+      "effect": {
+        "kind": "rate",
+        "perHour": 3000
+      },
+      "match": {
+        "stationTypes": [
+          "pool"
+        ]
+      },
+      "stationNames": null
+    },
+    {
+      "name": "Happy Hour",
+      "priority": 10,
+      "active": false,
+      "effect": {
+        "kind": "percent",
+        "percent": -20
+      },
+      "match": {
+        "timeTo": "16:00",
+        "timeFrom": "12:00",
+        "daysOfWeek": [
+          7,
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "stationNames": null
+    }
+  ],
+  "packages": [],
+  "products": [
+    {
+      "name": "إسبريسو",
+      "category": "مشروبات ساخنة",
+      "price": 1000,
+      "trackStock": false,
+      "lowStockAt": 0,
+      "packSize": null,
+      "active": true,
+      "sort": 1
+    },
+    {
+      "name": "نسكافيه",
+      "category": "مشروبات ساخنة",
+      "price": 1250,
+      "trackStock": false,
+      "lowStockAt": 0,
+      "packSize": null,
+      "active": true,
+      "sort": 2
+    },
+    {
+      "name": "شاي",
+      "category": "مشروبات ساخنة",
+      "price": 750,
+      "trackStock": false,
+      "lowStockAt": 0,
+      "packSize": null,
+      "active": true,
+      "sort": 3
+    },
+    {
+      "name": "بيبسي",
+      "category": "مشروبات باردة",
+      "price": 750,
+      "trackStock": true,
+      "lowStockAt": 10,
+      "packSize": null,
+      "active": true,
+      "sort": 1
+    },
+    {
+      "name": "ريد بول",
+      "category": "مشروبات باردة",
+      "price": 2000,
+      "trackStock": true,
+      "lowStockAt": 10,
+      "packSize": null,
+      "active": true,
+      "sort": 2
+    },
+    {
+      "name": "مي",
+      "category": "مشروبات باردة",
+      "price": 350,
+      "trackStock": true,
+      "lowStockAt": 10,
+      "packSize": null,
+      "active": true,
+      "sort": 3
+    },
+    {
+      "name": "ناتشوز",
+      "category": "أكل",
+      "price": 2500,
+      "trackStock": false,
+      "lowStockAt": 0,
+      "packSize": null,
+      "active": true,
+      "sort": 1
+    },
+    {
+      "name": "إندومي",
+      "category": "أكل",
+      "price": 1500,
+      "trackStock": true,
+      "lowStockAt": 10,
+      "packSize": null,
+      "active": true,
+      "sort": 2
+    },
+    {
+      "name": "توست",
+      "category": "أكل",
+      "price": 2000,
+      "trackStock": false,
+      "lowStockAt": 0,
+      "packSize": null,
+      "active": true,
+      "sort": 3
+    },
+    {
+      "name": "شيبس",
+      "category": "سناكس",
+      "price": 500,
+      "trackStock": true,
+      "lowStockAt": 10,
+      "packSize": null,
+      "active": true,
+      "sort": 1
+    },
+    {
+      "name": "شوكولاتة",
+      "category": "سناكس",
+      "price": 750,
+      "trackStock": true,
+      "lowStockAt": 10,
+      "packSize": null,
+      "active": true,
+      "sort": 2
+    }
+  ],
+  "controllers": []
+}
