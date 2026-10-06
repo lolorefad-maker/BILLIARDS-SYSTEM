@@ -182,6 +182,10 @@ export interface LedgerRow {
   paidByMethod: Record<string, number>;
   /** A cafeteria sale (no device). */
   counter?: boolean;
+  /** The players agreed that the loser pays this table (and who, when known). */
+  loserPays?: boolean;
+  loser?: string | null;
+  teams?: { name: string; wins: number }[] | null;
   /** Part of this bill already counted on an earlier day (it ran past that day's end). */
   carriedOutTime?: number;
   carriedOutItems?: number;
@@ -300,6 +304,9 @@ export interface Bill {
     stationName?: string | null;
     startedAt?: number;
     endedAt?: number;
+    loserPays?: boolean;
+    loser?: string | null;
+    teams?: { name: string; wins: number }[] | null;
   };
   createdAt: string;
 }

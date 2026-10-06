@@ -1,6 +1,6 @@
 import { computeCheckout, earnsReward, normalizePhone, parseMoney, roundToUnit, type DiscountInput } from '@lounge/core';
 import { clsx } from 'clsx';
-import { Banknote, CircleCheck, CreditCard, Gift, Printer, TriangleAlert } from 'lucide-react';
+import { Banknote, CircleCheck, CreditCard, Gift, Printer, Trophy, TriangleAlert } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Button } from '../../components/ui/button';
 import { errorMessage, withApproval } from '../../components/ui/feedback';
@@ -42,6 +42,12 @@ function CheckoutInner({ sessionId, onClose }: { sessionId: string; onClose: () 
   const [discountValue, setDiscountValue] = useState('');
   const [discountReason, setDiscountReason] = useState('');
   const [rewardOn, setRewardOn] = useState(false);
+  const [loserOn, setLoserOn] = useState(false);
+  const [teamA, setTeamA] = useState('');
+  const [teamB, setTeamB] = useState('');
+  const [winsA, setWinsA] = useState('');
+  const [winsB, setWinsB] = useState('');
+  const [pick, setPick] = useState<'a' | 'b' | null>(null);
   const [phone, setPhone] = useState('');
   const [method, setMethod] = useState<'cash' | 'card'>('cash');
   const [received, setReceived] = useState('');
@@ -89,6 +95,13 @@ function CheckoutInner({ sessionId, onClose }: { sessionId: string; onClose: () 
     [data, discount, settings],
   );
 
+  // "The loser pays": enter how many games each side won; the side with fewer wins pays the table.
+  const nameA = teamA.trim() || t('checkout.team', { n: 1 });
+  const nameB = teamB.trim() || t('checkout.team', { n: 2 });
+  const scored = winsA !== '' && winsB !== '' && Number.isInteger(Number(winsA)) && Number.isInteger(Number(winsB)) && Number(winsA) >= 0 && Number(winsB) >= 0;
+  const byScore = scored && Number(winsA) !== Number(winsB) ? (Number(winsA) < Number(winsB) ? 'a' : 'b') : null;
+  const loserSide = byScore ?? pick;
+  const loserShown = loserSide === 'a' ? nameA : loserSide === 'b' ? nameB : null;
   const due = totals?.due ?? 0;
   const receivedMinor = received ? parseMoney(received, f.decimals) : null;
   const change = method === 'cash' && due > 0 && receivedMinor != null ? receivedMinor - due : null;
@@ -110,6 +123,9 @@ function CheckoutInner({ sessionId, onClose }: { sessionId: string; onClose: () 
       discountReason: !reward && discount ? discountReason.trim() || t('checkout.houseDiscount') : null,
       rewardId: reward?.id ?? null,
       customerPhone: askPhone && phoneOk ? phone.trim() : null,
+      loserPays: loserOn,
+      teams: loserOn && scored ? [{ name: nameA, wins: Number(winsA) }, { name: nameB, wins: Number(winsB) }] : null,
+      loser: loserOn ? loserShown : null,
       payments: due === 0 ? [] : [{ method, amount: due }],
       expectedTotal: totals.total,
     };
@@ -324,6 +340,80 @@ function CheckoutInner({ sessionId, onClose }: { sessionId: string; onClose: () 
                 />
                 {discountKind === 'final' && <p className="text-xs text-muted">{discountValue && !discount ? t('checkout.chargeTooHigh') : t('checkout.chargeHint')}</p>}
                 {discount && <Input value={discountReason} onChange={(e) => setDiscountReason(e.target.value)} placeholder={t('checkout.houseDiscount')} aria-label={t('checkout.discountReason')} />}
+              </div>
+            )}
+
+            {/* Billiards: the players decide at the end that the loser pays the table. */}
+            <button
+              type="button"
+              role="switch"
+              aria-checked={loserOn}
+              onClick={() => setLoserOn((v) => !v)}
+              data-status={loserOn ? 'ending' : undefined}
+              className={clsx(
+                'flex items-center gap-3 rounded-card border p-3 text-start transition-colors',
+                loserOn ? 'tint-strong' : 'border-line hover:border-line-strong hover:bg-surface-2',
+              )}
+            >
+              <Trophy className={clsx('size-5 shrink-0', loserOn ? 'st-fg' : 'text-muted')} aria-hidden />
+              <span className="flex min-w-0 flex-1 flex-col">
+                <span className="text-sm font-semibold">{t('checkout.loser')}</span>
+                <span className="text-xs text-muted">{t('checkout.loserHint')}</span>
+              </span>
+            </button>
+            {loserOn && (
+              <div className="flex flex-col gap-3 rounded-card border border-line p-3">
+                {(['a', 'b'] as const).map((side) => (
+                  <div key={side} className="grid grid-cols-[1fr_72px] gap-2">
+                    <Input
+                      value={side === 'a' ? teamA : teamB}
+                      onChange={(e) => (side === 'a' ? setTeamA(e.target.value) : setTeamB(e.target.value))}
+                      placeholder={side === 'a' ? nameA : nameB}
+                      aria-label={t('checkout.teamName')}
+                      maxLength={60}
+                    />
+                    <Input
+                      inputMode="numeric"
+                      className="num text-center"
+                      value={side === 'a' ? winsA : winsB}
+                      onChange={(e) => {
+                        const v = e.target.value.replace(/\D/g, '').slice(0, 2);
+                        if (side === 'a') setWinsA(v);
+                        else setWinsB(v);
+                      }}
+                      placeholder="0"
+                      aria-label={t('checkout.teamWins')}
+                    />
+                  </div>
+                ))}
+                {byScore || !scored ? (
+                  <p className="text-xs text-muted">{byScore ? '' : t('checkout.loserEnter')}</p>
+                ) : (
+                  <p className="text-xs text-st-ending">{t('checkout.loserTie')}</p>
+                )}
+                {/* The result decides; with a tie (or no result) the cashier taps who lost. Either can be changed by hand. */}
+                <div className="grid grid-cols-2 gap-2">
+                  {(['a', 'b'] as const).map((side) => (
+                    <button
+                      key={side}
+                      type="button"
+                      onClick={() => setPick(side)}
+                      aria-pressed={loserSide === side}
+                      className={clsx(
+                        'h-10 truncate rounded-control border px-2 text-sm font-medium transition-colors',
+                        loserSide === side ? 'border-accent bg-accent/12 text-accent' : 'border-line bg-surface-2 hover:border-line-strong',
+                      )}
+                    >
+                      {side === 'a' ? nameA : nameB}
+                    </button>
+                  ))}
+                </div>
+                {loserShown && (
+                  <div data-status="ending" className="tint flex items-center gap-2 rounded-control border px-3 py-2 text-sm font-semibold">
+                    <Trophy className="size-4 shrink-0" aria-hidden />
+                    {t('checkout.loserPays', { name: loserShown })}
+                  </div>
+                )}
               </div>
             )}
 

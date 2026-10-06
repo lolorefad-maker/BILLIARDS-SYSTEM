@@ -58,7 +58,20 @@ export const checkoutSessionInput = z.object({
   customerPhone: z.string().trim().max(30).nullish(),
   /** Take this customer's free hour off the bill (instead of a hand-made discount). */
   rewardId: z.uuid().nullish(),
+  /** The players agreed that the loser pays the table: written on the bill (and who the loser is, if known). */
+  loserPays: z.boolean().optional(),
+  /** The two sides and how many games each won. The side with fewer wins is the loser. */
+  teams: z.array(z.object({ name: z.string().trim().min(1).max(60), wins: z.number().int().min(0).max(99) })).length(2).nullish(),
+  /** Who the loser is when the results do not say (a tie, or no result entered). */
+  loser: z.string().trim().max(80).nullish(),
 });
+
+/** The loser: the side that won fewer games; with a tie or no result, the one the cashier named. */
+export function loserOf(input: { teams?: { name: string; wins: number }[] | null; loser?: string | null }): string | null {
+  const t = input.teams;
+  if (t && t.length === 2 && t[0]!.wins !== t[1]!.wins) return t[0]!.wins < t[1]!.wins ? t[0]!.name : t[1]!.name;
+  return input.loser?.trim() || null;
+}
 
 interface ItemLine {
   id: string;
@@ -348,6 +361,9 @@ export async function checkoutSession(ctx: AppContext, actor: Actor, sessionId: 
         startedAt: s.startedAt.getTime(),
         endedAt: s.endedAt!.getTime(),
         prepaidByMethod: paid.byMethod,
+        loserPays: !!input.loserPays,
+        loser: input.loserPays ? loserOf(input) : null,
+        teams: input.loserPays ? (input.teams ?? null) : null,
       },
     });
 

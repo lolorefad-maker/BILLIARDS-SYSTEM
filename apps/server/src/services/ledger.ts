@@ -53,6 +53,9 @@ export async function sessionsLog(q: Q, branchId: string, day: string) {
       startedAt?: number;
       endedAt?: number;
       counter?: boolean;
+      loserPays?: boolean;
+      loser?: string | null;
+      teams?: { name: string; wins: number }[] | null;
     };
     const items = new Map<string, number>();
     for (const i of bd.items ?? []) if (!i.voided) items.set(i.name, (items.get(i.name) ?? 0) + i.qty);
@@ -73,6 +76,10 @@ export async function sessionsLog(q: Q, branchId: string, day: string) {
       paidByMethod: byMethod(pays.filter((p) => p.billId === b.id && p.day === day)),
       /** A cafeteria sale (no device). */
       counter: !!bd.counter,
+      /** The players agreed that the loser pays this table. */
+      loserPays: !!bd.loserPays,
+      loser: bd.loser ?? null,
+      teams: bd.teams ?? null,
       paidAt: null as number | null,
       billTotal: null as number | null,
       billPaidByMethod: null as Record<string, number> | null,
@@ -125,6 +132,9 @@ export async function sessionsLog(q: Q, branchId: string, day: string) {
         // What was paid into this day's drawer for its share (when the session was paid later).
         paidByMethod: bill ? byMethod(billPays.filter((p) => p.billId === bill.id && p.day === day)) : ({} as Record<string, number>),
         counter: false,
+        loserPays: false,
+        loser: null as string | null,
+        teams: null as { name: string; wins: number }[] | null,
         carriedOutTime: 0,
         carriedOutItems: 0,
         carried: true,

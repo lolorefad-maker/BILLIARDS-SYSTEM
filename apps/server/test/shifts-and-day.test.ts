@@ -90,3 +90,37 @@ describe('shifts hand over inside one day', () => {
     expect(((await h.floor()).sessions as Json[]).find((s) => s.id === running.json.id)?.status).toBe('running');
   });
 });
+
+describe('the loser pays', () => {
+  it('is written on the bill and shown in the ledger, on any table, without changing the money', async () => {
+    const h2 = await createHarness('2026-09-25T15:00:00Z', {}, billiardsLayout);
+    try {
+      await h2.api('POST', '/api/shifts/open', { openingFloat: 0 }, h2.tokens.cashier);
+      const floor = await h2.floor();
+      const t = (n: string) => floor.stations.find((s: Json) => s.name === n);
+      const run = async (name: string, body: Json) => {
+        const s = await h2.api('POST', '/api/sessions', { stationId: t(name).id, mode: 'standard', kind: 'open' }, h2.tokens.cashier);
+        h2.advance(60);
+        const due = (await h2.api('GET', `/api/sessions/${s.json.id}/bill`, undefined, h2.tokens.cashier)).json.totals.due;
+        return { due, res: await h2.api('POST', `/api/sessions/${s.json.id}/checkout`, { payments: [{ method: 'cash', amount: due }], ...body }, h2.tokens.cashier) };
+      };
+      // The side with fewer wins pays (the server decides from the result, whatever name the screen sent).
+      const a = await run('PL-1', { loserPays: true, loser: 'غلط', teams: [{ name: 'سامر', wins: 1 }, { name: 'علي', wins: 3 }] });
+      const b = await run('SN-1', {});
+      const tie = await run('PL-2', { loserPays: true, loser: 'علي', teams: [{ name: 'سامر', wins: 2 }, { name: 'علي', wins: 2 }] });
+      expect(a.res.status).toBe(200);
+      expect(b.res.status).toBe(200);
+      const bill = (await h2.api('GET', `/api/bills/${a.res.json.billId}`, undefined, h2.tokens.cashier)).json;
+      expect(bill.breakdown).toMatchObject({ loserPays: true, loser: 'سامر' });
+      expect(tie.res.status).toBe(200);
+      const day = (await h2.floor()).day as string;
+      const log = (await h2.api('GET', `/api/reports/sessions?day=${day}`, undefined, h2.tokens.manager)).json as Json[];
+      expect(log.find((r) => r.billId === a.res.json.billId)).toMatchObject({ loserPays: true, loser: 'سامر', total: a.due, teams: [{ name: 'سامر', wins: 1 }, { name: 'علي', wins: 3 }] });
+      // A tie is decided by who the cashier named.
+      expect(log.find((r) => r.billId === tie.res.json.billId)).toMatchObject({ loserPays: true, loser: 'علي' });
+      expect(log.find((r) => r.billId === b.res.json.billId)).toMatchObject({ loserPays: false, loser: null });
+    } finally {
+      await h2.close();
+    }
+  });
+});

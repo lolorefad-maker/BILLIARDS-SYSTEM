@@ -4,7 +4,7 @@ export const en: Dict = {
   app: { name: 'Billiards', tagline: 'Billiards club' },
   nav: { floor: 'Floor', cafe: 'Cafeteria', controllers: 'Controllers', reservations: 'Bookings', stock: 'Stock', reports: 'Ledger', settings: 'Settings', rewards: 'Rewards', customers: 'Customer numbers', customersShort: 'Numbers' },
   ledger: {
-    accountantTook: 'Taken by the accountant', shiftsTitle: 'Shifts', tookOver: 'Took over', handedOver: 'Handed over', handedFrom: 'Took over from {name}',
+    accountantTook: 'Taken by the accountant', loserPaid: 'The loser pays: {name}', shiftsTitle: 'Shifts', tookOver: 'Took over', handedOver: 'Handed over', handedFrom: 'Took over from {name}',
     floatDiffers: 'Different from what was handed over', shiftIncome: 'This shift’s income', shiftClosed: 'Handed over', deleteTitle: 'Confirm delete', deleteConfirm: 'Confirm delete',
     deleteBody: 'It leaves the day’s income and the ledger (even on a closed day), and its money is taken out of the shift. The audit log keeps who deleted it and why.',
     cafeLog: 'Cafeteria purchases', dayProfit: 'Profit so far today', devicesPlayed: '{n} tables played', increase: 'Increase (what came in)',
@@ -79,7 +79,7 @@ export const en: Dict = {
   },
   checkout: {
     title: 'Checkout', subtotal: 'Subtotal', discount: 'Discount', addDiscount: 'Add discount', removeDiscount: 'Remove discount',
-    discountReason: 'Discount reason', charge: 'Amount to charge', chargeHint: 'Type what you will take from the customer — the difference is the shop’s own discount, and this amount is what goes into the ledger and the shift.', chargeTooHigh: 'It must be less than the bill', houseDiscount: 'Shop discount', percent: 'Percent %', amount: 'Amount', rounding: 'Rounding', prepaid: 'Prepaid',
+    discountReason: 'Discount reason', loser: 'The loser pays', loserHint: 'The players agreed that the loser pays for the table.', team: 'Team {n}', teamName: 'Team or player name', teamWins: 'Games won', loserEnter: 'Enter how many games each side won: the one with fewer wins is the loser and pays the whole bill.', loserTie: 'A tie: tap who lost.', loserPays: 'The whole bill is on {name}', loserLine: 'The loser pays', charge: 'Amount to charge', chargeHint: 'Type what you will take from the customer — the difference is the shop’s own discount, and this amount is what goes into the ledger and the shift.', chargeTooHigh: 'It must be less than the bill', houseDiscount: 'Shop discount', percent: 'Percent %', amount: 'Amount', rounding: 'Rounding', prepaid: 'Prepaid',
     totalDue: 'Total due', refund: 'Refund to customer', cash: 'Cash', card: 'Visa', received: 'Cash received', change: 'Change',
     exact: 'Exact amount', confirm: 'Confirm payment', confirmRefund: 'Confirm refund', success: 'Paid — bill #{n}',
     printReceipt: 'Print receipt', lateCash: "Put {amount} of this with {name}'s shift money (closed at {time})", lateCard: "{amount} of this bill went to {name}'s shift (visa)",

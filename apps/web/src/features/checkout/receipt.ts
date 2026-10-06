@@ -30,6 +30,11 @@ export function printReceipt(bill: Bill, opts: { branchName: string; lang: Lang;
   if (b.totals.paid) line(t('checkout.prepaid'), `-${f.money(b.totals.paid)}`);
   for (const p of b.payments) line(t(`checkout.${p.method}`), f.money(p.amount));
 
+  if (b.loserPays) {
+    if (b.teams?.length === 2) line(`${b.teams[0]!.name} – ${b.teams[1]!.name}`, `${b.teams[0]!.wins} – ${b.teams[1]!.wins}`);
+    line(t('checkout.loserLine'), b.loser || '✓');
+  }
+
   const dir = lang === 'ar' ? 'rtl' : 'ltr';
   // The shop's name on top; the branch under it only when it says something else.
   const brand = t('app.name');

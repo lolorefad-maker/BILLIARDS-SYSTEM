@@ -1,5 +1,5 @@
 import { clsx } from 'clsx';
-import { Banknote, Coffee, CreditCard, Gamepad2, MoonStar, Trash2, UserRound } from 'lucide-react';
+import { Banknote, Coffee, CreditCard, Gamepad2, MoonStar, Trash2, Trophy, UserRound } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Button } from '../../components/ui/button';
 import { useAction } from '../../components/ui/feedback';
@@ -133,6 +133,7 @@ export function DailyLog({ day, isOpenDay }: { day: string; isOpenDay: boolean }
                         </div>
                       )}
                       <SplitNote r={r} />
+                      <LoserNote r={r} />
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-end">{f.span(r.playedMs)}</td>
                     <td className="px-4 py-3 text-end">
@@ -215,6 +216,7 @@ export function DailyLog({ day, isOpenDay }: { day: string; isOpenDay: boolean }
                   </div>
                 )}
                 <SplitNote r={r} />
+                <LoserNote r={r} />
               </li>
             ))}
           </ul>
@@ -397,5 +399,17 @@ export function CafeLog({ day }: { day: string }) {
       </ul>
       {deleting && <DeleteRowModal row={deleting} onClose={() => setDeleting(null)} />}
     </Card>
+  );
+}
+
+/** "The loser pays": who paid the table when the players agreed on it. */
+function LoserNote({ r }: { r: { loserPays?: boolean; loser?: string | null; teams?: { name: string; wins: number }[] | null } }) {
+  const { t } = useT();
+  if (!r.loserPays) return null;
+  return (
+    <div data-status="ending" className="st-fg mt-0.5 flex items-center gap-1 text-xs font-medium">
+      <Trophy className="size-3" aria-hidden /> {r.loser ? t('ledger.loserPaid', { name: r.loser }) : t('checkout.loserLine')}
+      {r.teams?.length === 2 && <Num className="ms-1 text-muted">{r.teams[0]!.wins} – {r.teams[1]!.wins}</Num>}
+    </div>
   );
 }
